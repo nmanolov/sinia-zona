@@ -1,6 +1,26 @@
-.map {
-  height: 600px;
+html, body {
+  height: 100%;
+}
+
+.container {
   width: 100%;
+  height: 100%;
+  position: relative;
+  display: block;
+}
+.root {
+  display: inline;
+  width: 20%;
+  min-width: 200px;
+  float: left;
+}
+.map {
+  display: inline;
+  height: 100%;
+  width: 80%;
+  min-width: 400px;
+  float: left;
+  margin-top: -8px; 
 }
 
 .info {
