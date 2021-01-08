@@ -1,17 +1,19 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development',
   entry: {
-    index: './src/index.js',
+    index: './src/index.js'
   },
   devtool: 'inline-source-map',
   devServer: {
     contentBase: './dist',
     port: 9000,
     host: '0.0.0.0',
+    writeToDisk: true
   },
   plugins: [
     new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),
@@ -20,6 +22,12 @@ module.exports = {
       meta: {
         'theme-color': '#4285f4'
       }
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: './src/blueZone.json'},
+        { from: './src/greenZone.json'},
+      ],
     }),
   ],
   output: {
