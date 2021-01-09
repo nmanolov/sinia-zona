@@ -10,7 +10,135 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 6"
+        "name": "Подзона 1",
+        "color": "blue",
+        "fillColor": "rgba(0, 0, 255, 0.1)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2596378.722546226, 5265577.81341657],
+            [2596354.7154031205, 5265596.753954232],
+            [2596205.8384511676, 5265627.436591855],
+            [2596063.3825275907, 5265653.93518563],
+            [2595874.686264587, 5265678.480622604],
+            [2595441.265604842, 5265626.027800376],
+            [2595448.258539108, 5266069.053709586],
+            [2595491.0957764885, 5266250.013170415],
+            [2596161.401730738, 5266076.613428587],
+            [2596226.6674258565, 5266098.835969186],
+            [2596424.689571974, 5266057.660208912],
+            [2596437.7940698816, 5265998.8071553195],
+            [2596624.7322377795, 5265896.825391528]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Подзона 2",
+        "color": "blue",
+        "fillColor": "rgba(0, 0, 255, 0.1)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2595754.1196180545, 5264327.617950933],
+            [2595301.199887921, 5264821.76354179],
+            [2595441.265604842, 5265626.027800376],
+            [2595874.686264587, 5265678.480622604],
+            [2596063.3825275907, 5265653.93518563],
+            [2595861.25114146, 5264750.976974612]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Подзона 3",
+        "color": "blue",
+        "fillColor": "rgba(0, 0, 255, 0.1)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2596063.3825275907, 5265653.93518563],
+            [2596205.8384511676, 5265627.436591855],
+            [2596288.964072086, 5265464.726541854],
+            [2596404.244694606, 5265290.818357231],
+            [2596527.063101659, 5265119.978714884],
+            [2596964.41877563, 5264619.7454897165],
+            [2596896.502598434, 5264544.329887067],
+            [2596095.560759909, 5264270.444084318],
+            [2595826.076183468, 5264296.434451386],
+            [2595754.1196180545, 5264327.617950933],
+            [2595861.25114146, 5264750.976974612]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Подзона 4",
+        "color": "blue",
+        "fillColor": "rgba(0, 0, 255, 0.1)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2596205.8384511676, 5265627.436591855],
+            [2596288.964072086, 5265464.726541854],
+            [2596404.244694606, 5265290.818357231],
+            [2596527.063101659, 5265119.978714884],
+            [2596964.41877563, 5264619.7454897165],
+            [2597229.3748946916, 5264915.084607341],
+            [2597538.069824454, 5265269.421568352],
+            [2597567.460625441, 5265378.499616677],
+            [2596624.7322377795, 5265896.825391528],
+            [2596378.722546226, 5265577.81341657],
+            [2596354.7154031205, 5265596.753954232]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Подзона 5",
+        "color": "blue",
+        "fillColor": "rgba(0, 0, 255, 0.1)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2596424.689571974, 5266057.660208912],
+            [2597608.8423049995, 5266218.520799486],
+            [2597608.8423049995, 5266218.520799486],
+            [2597662.566889526, 5265948.80305091],
+            [2597704.014533603, 5265920.622129261],
+            [2597694.3340471596, 5265889.558733111],
+            [2597663.4062547833, 5265873.203930002],
+            [2597567.460625441, 5265378.499616677],
+            [2596624.7322377795, 5265896.825391528],
+            [2596437.7940698816, 5265998.8071553195]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Подзона 6",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -27,7 +155,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 7"
+        "name": "Подзона 7",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -45,7 +175,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 8"
+        "name": "Подзона 8",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -67,7 +199,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 9"
+        "name": "Подзона 9",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -85,7 +219,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 10"
+        "name": "Подзона 10",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -110,7 +246,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 11"
+        "name": "Подзона 11",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -135,7 +273,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 12"
+        "name": "Подзона 12",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -143,7 +283,6 @@
           [
             [2597919.6600050903, 5264976.451648693],
             [2597567.460625441, 5265378.499616677],
-            
             [2597663.4062547833, 5265873.203930002],
             [2597694.3340471596, 5265889.558733111],
             [2597704.014533603, 5265920.622129261],
@@ -163,7 +302,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 13"
+        "name": "Подзона 13",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -187,7 +328,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 14"
+        "name": "Подзона 14",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -210,7 +353,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 15"
+        "name": "Подзона 15",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -228,7 +373,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 16"
+        "name": "Подзона 16",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -248,7 +395,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 17"
+        "name": "Подзона 17",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -290,7 +439,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 18"
+        "name": "Подзона 18",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -312,7 +463,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 19"
+        "name": "Подзона 19",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -334,7 +487,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 20"
+        "name": "Подзона 20",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -369,7 +524,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 21"
+        "name": "Подзона 21",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -409,7 +566,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 22"
+        "name": "Подзона 22",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -439,7 +598,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 23"
+        "name": "Подзона 23",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -461,7 +622,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 24"
+        "name": "Подзона 24",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -489,7 +652,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 25"
+        "name": "Подзона 25",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -511,7 +676,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 26"
+        "name": "Подзона 26",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -548,7 +715,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 27"
+        "name": "Подзона 27",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -573,7 +742,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 28"
+        "name": "Подзона 28",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -601,7 +772,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 29"
+        "name": "Подзона 29",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -631,7 +804,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 30"
+        "name": "Подзона 30",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -657,7 +832,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 31"
+        "name": "Подзона 31",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -681,7 +858,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 32"
+        "name": "Подзона 32",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -712,7 +891,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 33"
+        "name": "Подзона 33",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -737,7 +918,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 34"
+        "name": "Подзона 34",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -770,7 +953,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 35"
+        "name": "Подзона 35",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",
@@ -804,7 +989,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Подзона 36"
+        "name": "Подзона 36",
+        "color": "green",
+        "fillColor": "rgba(0, 255, 0, 0.3)"
       },
       "geometry": {
         "type": "Polygon",

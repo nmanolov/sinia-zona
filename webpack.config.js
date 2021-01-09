@@ -25,8 +25,7 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        { from: './src/blueZone.json'},
-        { from: './src/greenZone.json'},
+        { from: './src/zones.json' },
       ],
     }),
   ],

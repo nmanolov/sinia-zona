@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 
-import _ from 'lodash';
+import _, { difference } from 'lodash';
 import './style.css';
 
 import { View, Map } from 'ol';
@@ -13,19 +13,17 @@ import { GeoJSON } from 'ol/format';
 import MultiPoint from 'ol/geom/MultiPoint';
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
 import { DragBox, Select } from 'ol/interaction';
-import { altKeyOnly, click, pointerMove, platformModifierKeyOnly } from 'ol/events/condition';
+import { click, platformModifierKeyOnly } from 'ol/events/condition';
 import { containsCoordinate } from 'ol/extent';
+import { GeometryCollection } from 'ol/geom'
+import { easeIn} from 'ol/easing';
 
-import { useQueryParams, NumberParam, StringParam, withDefault } from 'use-query-params';
+import { useQueryParams, NumberParam, StringParam, withDefault, ArrayParam } from 'use-query-params';
+import Color from 'color';
 
-import blueZone from './blueZone.json';
-import greenZone from './greenZone.json';
-
-const blueZoneSource = new VectorSource({
-  features: new GeoJSON().readFeatures(blueZone),
-});
-const greenZoneSource = new VectorSource({
-  features: new GeoJSON().readFeatures(greenZone),
+const zonesSource = new VectorSource({
+  url: './zones.json',
+  format: new GeoJSON(),
 });
 
 const featureToMultipoints = (feature) => {
@@ -36,7 +34,11 @@ const featureToMultipoints = (feature) => {
 let view;
 let map;
 
-const createStyles = (color, fillColor) => {
+const zoneStyles = (feature, resolution) => {
+  const color = feature.get('color') || 'gray';
+  const fillColor = feature.get('fillColor') || 'rgba(127, 127, 127, 0.5)';
+  const text = feature.get('name');
+
   const fill = new Style({
     stroke: new Stroke({
       color,
@@ -47,6 +49,7 @@ const createStyles = (color, fillColor) => {
       color: fillColor,
     }),
     text: new Text({
+      text,
       font: '12px Calibri,sans-serif',
       stroke: new Stroke({
         color,
@@ -64,33 +67,45 @@ const createStyles = (color, fillColor) => {
     geometry: featureToMultipoints,
   });
 
-  return (feature, resolution) => {
-    fill.getText().setText(feature.get('name'));
-    return [fill, points]
-  }
+  return [fill, points]
 }
 
-const blueZoneStyles = createStyles('blue', 'rgba(0, 0, 255, 0.1)');
-const greenZoneStyles = createStyles('green', 'rgba(0, 255, 0, 0.1)');
-
-const blueZoneLayer = new VectorLayer({
-  source: blueZoneSource,
-  style:  blueZoneStyles,
-});
-
-const greenZoneLayer = new VectorLayer({
-  source: greenZoneSource,
-  style: greenZoneStyles,
+const zonesLayer = new VectorLayer({
+  source: zonesSource,
+  style:  zoneStyles,
 });
 
 const Component = () => {
-
   const [query, setQuery] = useQueryParams({
     lon: withDefault(NumberParam, 23.3168),
     lat: withDefault(NumberParam, 42.6877),
     zoom: withDefault(NumberParam, 13),
     tool: withDefault(StringParam, 'none'),
   });
+
+  const [features, setFeatures] = useState([]);
+
+  useEffect(() => {
+    zonesSource.on('featuresloadend', (event)=> {
+      setFeatures(event.features);
+
+      return () => {
+        event.target.un('featuresloadend');
+      };
+    })
+  });
+
+  const [featuresByColor, setColorFeatures] = useState({});
+  const [colors, setColors] = useState([]);
+
+  useEffect(() => {
+    const colors = _.chain(features)
+      .map(feature => feature.get('color'))
+      .uniq()
+      .value();
+    setColors(colors);
+    setColorFeatures(_.groupBy(features, feature => feature.get('color')));
+  },[features]);
 
   const {
     lon, lat, zoom, tool
@@ -115,8 +130,7 @@ const Component = () => {
         new TileLayer({
           source: new OSM(),
         }),
-        blueZoneLayer,
-        greenZoneLayer,
+        zonesLayer,
       ],
       view,
     });
@@ -128,15 +142,22 @@ const Component = () => {
     map.on('pointermove', _.debounce(showInfo, 100));
   }
   
-  const [info, setInfo] = useState({style: {}, text: ''});
+  const [info, setInfo] = useState({style: {}, text: '', coordinate: []});
   function showInfo(event) {
     const features = map.getFeaturesAtPixel(event.pixel);
+    const coordinate = toLonLat(event.coordinate);
     if (features.length == 0) {
       setInfo({
         style: {opacity: 0},
         text: '',
+        coordinate,
       })
       return;
+    }
+
+    const darken = (originalColorString) => {
+      const color = Color(originalColorString);
+      return color.darken(0.5).alpha(0.3).rgb().string();
     }
 
     map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
@@ -144,12 +165,10 @@ const Component = () => {
       const featureStyle = layer.getStyle()(feature)[0];
       const fillColor = featureStyle.getFill().getColor();
       const textColor = featureStyle.getStroke().getColor();
-      const regex = /rgba\((?<red>\d+),\s*(?<green>\d+),\s*(?<blue>\d+)(?<opacity>,\s0\.1)\)/;
-      const match = fillColor.match(regex);
-      const {red, green, blue} = match.groups;
-      const backgroundColor = `rgba(${red}, ${green}, ${blue}, 0.3)`;
+      const backgroundColor = darken(fillColor);
       setInfo({
         text: properties.name,
+        coordinate,
         style: {
           backgroundColor,
           color: textColor,
@@ -163,11 +182,6 @@ const Component = () => {
   const tools = [
     {
       name: 'collect',
-      deinit: () => {
-        _.forEach(map.getInteractions(), interaction => {
-          map.removeInteraction(interaction);
-        });
-      },
       init: () => {
         const select = new Select({
           condition: click,
@@ -176,10 +190,11 @@ const Component = () => {
           condition: platformModifierKeyOnly,
         });
         const selectedFeatures = select.getFeatures();
-        dragBox.on('boxstart', () => {
+        const asd = () => {
           selectedFeatures.clear();
-        });
-        dragBox.on('boxend', () => {
+        };
+
+        const bsd = () => {
           const rotation = map.getView().getRotation();
           const oblique = rotation % (Math.PI / 2) !== 0;
           const candidateFeatures = oblique ? [] : selectedFeatures;
@@ -197,8 +212,7 @@ const Component = () => {
               });
             }
           }
-          greenZoneSource.forEachFeatureIntersectingExtent(extent, collectMatchingPoints);
-          blueZoneSource.forEachFeatureIntersectingExtent(extent, collectMatchingPoints);
+          zonesSource.forEachFeatureIntersectingExtent(extent, collectMatchingPoints);
           console.table(res);
 
           if (oblique) {
@@ -214,10 +228,20 @@ const Component = () => {
               }
             });
           }
-        });
+        }
+
+        dragBox.on('boxstart', asd);
+        dragBox.on('boxend', bsd);
 
         map.addInteraction(dragBox);
         map.addInteraction(select);
+
+        return () => {
+          map.removeInteraction(dragBox);
+          map.removeInteraction(select);
+          dragBox.un('boxstart', asd);
+          dragBox.un('boxend', bsd);
+        }
       }
     }
   ]
@@ -226,22 +250,153 @@ const Component = () => {
 
   const [currentTool, setCurrentTool] = useState(findTool(tool));  
   useEffect(() => {
+    console.log('useEffect Body')
     const nextTool = findTool(tool);
     if (currentTool === nextTool) {
       return;
     }
-    if (currentTool) {
-      currentTool.deinit();
-    }
-    
     setCurrentTool(nextTool);
   }, [tool]);
   useEffect(() => {
+    console.log('initing new current t00l');
     if (!currentTool) {
       return;
     }
-    currentTool.init();
+    return currentTool.init();
   }, [currentTool])
+
+  const [hiddenFeaturesQuery, setHiddenFeaturesNames] = useQueryParams({
+    hidden: withDefault(ArrayParam, []),
+  });
+  const hiddenFeatures = hiddenFeaturesQuery.hidden;
+
+  const [featuresVisibilities, setFeaturesVisibilities] = useState({});
+
+  const isZoneVisible = (name) => {
+    return featuresVisibilities[name] || false;
+  };
+
+  useEffect(() => {
+    const hiddenFeaturesHash = _.reduce(hiddenFeatures, (acc, name)=> {
+      acc[name] = true;
+      return acc;
+    }, {})
+
+    const visibilities = {};
+    _.forEach(colors, color=> {
+      visibilities[color] = _.every(featuresByColor[color], feature => !hiddenFeaturesHash[feature.get('name')]) && !hiddenFeaturesHash[color];
+    });
+    
+    _.forEach(colors, (color) => {
+      _.forEach(featuresByColor[color], (feature) => {
+        visibilities[feature.get('name')] = true;
+      });
+      if(hiddenFeaturesHash[color]) {
+        _.forEach(featuresByColor[color], (feature) => {
+          visibilities[feature.get('name')] = false;
+        })
+        visibilities[color]=false;
+      }
+    });
+    
+    _.forEach(hiddenFeaturesHash, (_value, key)=> {
+      visibilities[key] = false;
+    });
+
+    setFeaturesVisibilities(visibilities);
+  }, [hiddenFeatures, features, colors, featuresByColor])
+
+
+  const showZone = (shouldShow, name) => {
+    if(_.includes(colors, name)){
+      const featuresNames = getFeaturesNamesByColor(name);
+      const hidden = _.difference(hiddenFeatures, featuresNames, [name]);
+      if(shouldShow) {
+        setHiddenFeaturesNames({hidden});
+      } else {
+        setHiddenFeaturesNames({hidden: [name, ...hidden]});
+      }
+      return;
+    }
+
+    const featureColor = getFeatureColorByName(name);
+    const allNamesOfTheSameColor = getFeaturesNamesByColor(featureColor);
+
+    if(shouldShow) {
+      featuresVisibilities[name] = true;
+      const newHiddenFeaturesNames = _.chain(hiddenFeatures)
+      .difference([name, featureColor], allNamesOfTheSameColor)
+      .concat(_.filter(allNamesOfTheSameColor, name => !featuresVisibilities[name]))
+        .value();
+      setHiddenFeaturesNames({hidden: newHiddenFeaturesNames});
+    } else {
+      featuresVisibilities[name] = false;
+      const allAreInvisible = _.every(allNamesOfTheSameColor, (name) => !featuresVisibilities[name]);
+      if(allAreInvisible) {
+        const newHiddenFeaturesNames = _.chain(hiddenFeatures)
+          .difference(allNamesOfTheSameColor)
+          .concat(featureColor)
+          .value();
+        setHiddenFeaturesNames({hidden: newHiddenFeaturesNames});
+      } else {
+        const newHiddenFeaturesNames = _.chain(hiddenFeatures)
+          .concat([name])
+          .value();
+        setHiddenFeaturesNames({hidden: newHiddenFeaturesNames});
+      }
+    }
+  };
+
+  const getFeaturesByColor = (color) => {
+    return _.filter(features,
+      feature => feature.get('color') === color);
+  }
+
+  const getFeatureColorByName = (name) => {
+    return _.find(features, feature => feature.get('name') === name).get('color');
+  }
+
+  const getFeaturesNamesByColor = (color) => {
+    return _.chain(features)
+      .filter(feature => feature.get('color') === color)
+      .map(feature => feature.get('name'))
+      .value();
+  }
+
+  const navigate = (name) => {
+    let fitTarget;
+    if(_.includes(colors, name)) {
+      const zoneFeaturesGeometry = getFeaturesByColor(name)
+        .map(feature => feature.getGeometry())
+      const combinedGeometry = new GeometryCollection(zoneFeaturesGeometry);
+
+      fitTarget = combinedGeometry.getExtent();
+    } else {
+      const feature = _.find(features, (f)=> f.get('name') === name);
+      fitTarget = feature.getGeometry();
+    }
+    
+    showZone(true, name);
+    view.fit(fitTarget, { duration: 2000, easing: easeIn, nearest: true, padding: [40, 40, 40, 40]});
+  }
+
+  useEffect(()=>{
+    _.forEach(features, (feature)=>{
+      if(featuresVisibilities[feature.get('name')]) {
+        feature.setStyle(null);
+      } else {
+        feature.setStyle(new Style());
+      }
+    });
+    return () =>{
+      _.forEach(features, (feature)=>{ feature.setStyle(null); });
+    };
+  }, [features, featuresVisibilities]);
+
+  const [expanded, setExpanded] = useState({});
+  const toggleExpanded = (color) => {
+    setExpanded({...expanded, [color]: !expanded[color]});
+  }
 
   return (
     <>
@@ -249,7 +404,38 @@ const Component = () => {
         <option value="none">None</option>
         <option value="collect">Collect</option>
       </select>
-      <pre className='info' style={info.style}>{info.text}</pre>
+      <div>{JSON.stringify(info.coordinate)}</div>
+      {
+        colors.map((color, index) => {
+          const expansionClass = (expanded[color] || false)? 'expanded': 'collapsed';
+          return (<Fragment key={index}>
+            <p className="accordion" > 
+              <label onClick={() => navigate(color)}>{color} zone</label>
+              <input  type="checkbox" value={color} checked={isZoneVisible(color)} onChange={e => showZone(e.target.checked, color)}></input>
+              <button className={expansionClass} onClick={() => toggleExpanded(color)}></button>
+            </p>
+            <div className={expansionClass}>
+            {featuresByColor[color].map((feature, index) => {
+              const name = feature.get('name');
+              return (
+                <p key={index}> 
+                  <label onClick={() => navigate(name)}>{name}</label>
+                  <input  type="checkbox" value={name} checked={isZoneVisible(name)} onChange={e => showZone(e.target.checked, name)}></input>
+                </p>
+              );
+            })}
+            </div>
+          </Fragment>);
+        })
+      }
+      <pre className='info' style={info.style}>
+        <p>
+          {info.text}
+        </p>
+        <p>
+          {info.coordinate.map(num => Math.round((num + Number.EPSILON) * 10000) / 10000).toString()}
+        </p>
+      </pre>
     </>
   );
 };

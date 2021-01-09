@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -20,7 +21,7 @@ html, body {
   width: 80%;
   min-width: 400px;
   float: left;
-  margin-top: -8px; 
+  margin-top: -8px;
 }
 
 .info {
@@ -35,13 +36,65 @@ html, body {
   padding: 20px;
   color: white;
   border: solid 1px;
-  transition:
-    opacity 0.1s ease-in,
-    background-color 0.2s ease,
+  transition: opacity 0.1s ease-in, background-color 0.2s ease,
     border-color 0.2s ease;
 }
 
 .ol-dragbox {
-  background-color: rgba(255,255,255,0.4);
-  border-color: rgba(100,150,0,1);
+  background-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(100, 150, 0, 1);
+}
+
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+.active,
+.accordion:hover {
+  background-color: #ccc;
+}
+
+.root button::before {
+  border-style: solid;
+  border-width: 0.25em 0.25em 0 0;
+  content: '';
+  display: inline-block;
+  height: 0.45em;
+  left: 0.15em;
+  position: relative;
+  top: 0.15em;
+  vertical-align: top;
+  width: 0.45em;
+  transition: transform 0.2s ease-in;
+}
+
+.root button.collapsed::before {
+  transform: rotate(-135deg);
+}
+.root button.expanded::before {
+  left: 0;
+  transform: rotate(-225deg);
+}
+
+.root div {
+  margin: 0;
+  transition: max-height 2s ease-out;
+  overflow: scroll;
+}
+
+.root div.collapsed {
+  max-height: 0;
+}
+
+.root div.expanded {
+  display: block;
+  max-height: 100px;
 }
