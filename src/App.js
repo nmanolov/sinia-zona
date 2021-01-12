@@ -1,48 +1,32 @@
-import React, { Fragment, useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import _ from 'lodash';
-import "./style.scss";
+import './style.scss';
 
-import { View, Map } from 'ol';
-import TileLayer from 'ol/layer/Tile'
+import Layers from './Layers';
+import TileLayer from './TileLayer';
+import VectorLayer from './VectorLayer';
+import MapContext from './MapContext';
+import MapControls from './MapControls';
+
 import OSM from 'ol/source/OSM';
-import { fromLonLat, toLonLat } from 'ol/proj'
-import VectorLayer from 'ol/layer/Vector';
+import { toLonLat, fromLonLat } from 'ol/proj'
 import VectorSource from 'ol/source/Vector';
 import { GeoJSON } from 'ol/format';
 import MultiPoint from 'ol/geom/MultiPoint';
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
-import { DragBox, Select } from 'ol/interaction';
-import { click, platformModifierKeyOnly } from 'ol/events/condition';
-import { containsCoordinate } from 'ol/extent';
 import { GeometryCollection } from 'ol/geom'
-import { easeIn} from 'ol/easing';
+import { easeIn } from 'ol/easing';
+import View from 'ol/View';
+import OLMap from 'ol/Map';
 
 import { useQueryParams, NumberParam, StringParam, withDefault, ArrayParam } from 'use-query-params';
 import Color from 'color';
+import { Col, Row, Container } from 'react-bootstrap';
 
-import { Accordion, Card, Button, useAccordionToggle, AccordionContext } from 'react-bootstrap';
-
-
-function ContextAwareToggle({ children, eventKey, callback, className }) {
-  const currentEventKey = useContext(AccordionContext);
-
-  const decoratedOnClick = useAccordionToggle(
-    eventKey,
-    () => callback && callback(eventKey),
-  );
-
-  const isCurrentEventKey = currentEventKey === eventKey;
-
-  return (
-    <Button
-      variant='outline-link'
-      className={[className, isCurrentEventKey? 'expanded': 'collapsed']}
-      onClick={decoratedOnClick}
-    >
-      {children}
-    </Button>
-  );
+const darken = (originalColorString) => {
+  const color = Color(originalColorString);
+  return color.darken(0.5).alpha(0.3).rgb().string();
 }
 
 const zonesSource = new VectorSource({
@@ -54,9 +38,6 @@ const featureToMultipoints = (feature) => {
   const coordinates = feature.getGeometry().getCoordinates()[0];
   return new MultiPoint(coordinates);
 }
-
-let view;
-let map;
 
 const zoneStyles = (feature, resolution) => {
   const color = feature.get('color') || 'gray';
@@ -94,12 +75,7 @@ const zoneStyles = (feature, resolution) => {
   return [fill, points]
 }
 
-const zonesLayer = new VectorLayer({
-  source: zonesSource,
-  style:  zoneStyles,
-});
-
-const Component = () => {
+const App = () => {
   const [query, setQuery] = useQueryParams({
     lon: withDefault(NumberParam, 23.3168),
     lat: withDefault(NumberParam, 42.6877),
@@ -107,7 +83,30 @@ const Component = () => {
     tool: withDefault(StringParam, 'none'),
   });
 
+  const {
+    lon, lat, zoom, tool
+  } = query;
+
   const [features, setFeatures] = useState([]);
+
+  const mapRef = useRef();
+  const [map, setMap] = useState(null);
+  const center = fromLonLat([lon, lat]);
+  useEffect(() => {
+    let options = {
+      view: new View({
+        zoom,
+        center
+      }),
+      layers: [],
+      controls: [],
+      overlays: []
+    };
+    let mapObject = new OLMap(options);
+    mapObject.setTarget(mapRef.current);
+    setMap(mapObject);
+    return () => mapObject.setTarget(undefined);
+  }, []);
 
   useEffect(() => {
     zonesSource.on('featuresloadend', (event)=> {
@@ -129,165 +128,7 @@ const Component = () => {
       .value();
     setColors(colors);
     setColorFeatures(_.groupBy(features, feature => feature.get('color')));
-  },[features]);
-
-  const {
-    lon, lat, zoom, tool
-  } = query;
-
-  if(!view) {
-    view= new View({
-      center: fromLonLat([lon, lat]),
-      zoom,
-    });
-    view.on('change', _.throttle((e) => {
-      const view = e.target;
-      const zoom = view.getZoom();
-      const [lon, lat] = toLonLat(view.getCenter());
-      setQuery({zoom, lon, lat}, 'replaceIn');
-    }), 200);
-  }
-  if(!map) {
-    map = new Map({
-      target: 'map',
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        zonesLayer,
-      ],
-      view,
-    });
-  
-    map.on('click', (a) => {
-      console.log(a.coordinate);
-    });
-
-    map.on('pointermove', _.debounce(showInfo, 100));
-  }
-  
-  const [info, setInfo] = useState({style: {}, text: '', coordinate: []});
-  function showInfo(event) {
-    const features = map.getFeaturesAtPixel(event.pixel);
-    const coordinate = toLonLat(event.coordinate);
-    if (features.length == 0) {
-      setInfo({
-        style: {opacity: 0},
-        text: '',
-        coordinate,
-      })
-      return;
-    }
-
-    const darken = (originalColorString) => {
-      const color = Color(originalColorString);
-      return color.darken(0.5).alpha(0.3).rgb().string();
-    }
-
-    map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
-      const properties = feature.getProperties();
-      const featureStyle = layer.getStyle()(feature)[0];
-      const fillColor = featureStyle.getFill().getColor();
-      const textColor = featureStyle.getStroke().getColor();
-      const backgroundColor = darken(fillColor);
-      setInfo({
-        text: properties.name,
-        coordinate,
-        style: {
-          backgroundColor,
-          color: textColor,
-          borderColor: textColor,
-          opacity: 1,
-        }
-      });
-    });
-  }
-
-  const tools = [
-    {
-      name: 'collect',
-      init: () => {
-        const select = new Select({
-          condition: click,
-        });
-        const dragBox = new DragBox({
-          condition: platformModifierKeyOnly,
-        });
-        const selectedFeatures = select.getFeatures();
-        const asd = () => {
-          selectedFeatures.clear();
-        };
-
-        const bsd = () => {
-          const rotation = map.getView().getRotation();
-          const oblique = rotation % (Math.PI / 2) !== 0;
-          const candidateFeatures = oblique ? [] : selectedFeatures;
-          const extent = dragBox.getGeometry().getExtent();
-          const res = [];
-          const collectMatchingPoints = (feature) => {
-            candidateFeatures.push(feature);
-            const coordinates = feature.getGeometry().getCoordinates()[0];
-            const includedCoordinates = _.filter(coordinates, (coordinate) => {
-              return containsCoordinate(extent, coordinate);
-            });
-            if(includedCoordinates.length) {
-              _.forEach(includedCoordinates, (coordinate) => {
-                res.push([feature.getProperties().name, JSON.stringify(coordinate)]);
-              });
-            }
-          }
-          zonesSource.forEachFeatureIntersectingExtent(extent, collectMatchingPoints);
-          console.table(res);
-
-          if (oblique) {
-            const anchor = [0, 0];
-            const geometry = dragBox.getGeometry().clone();
-            geometry.rotate(-rotation, anchor);
-            const extent$1 = geometry.getExtent();
-            candidateFeatures.forEach(function (feature) {
-              const geometry = feature.getGeometry().clone();
-              geometry.rotate(-rotation, anchor);
-              if (geometry.intersectsExtent(extent$1)) {
-                selectedFeatures.push(feature);
-              }
-            });
-          }
-        }
-
-        dragBox.on('boxstart', asd);
-        dragBox.on('boxend', bsd);
-
-        map.addInteraction(dragBox);
-        map.addInteraction(select);
-
-        return () => {
-          map.removeInteraction(dragBox);
-          map.removeInteraction(select);
-          dragBox.un('boxstart', asd);
-          dragBox.un('boxend', bsd);
-        }
-      }
-    }
-  ]
-
-  const findTool = (name) => _.find(tools, {name});
-
-  const [currentTool, setCurrentTool] = useState(findTool(tool));  
-  useEffect(() => {
-    console.log('useEffect Body')
-    const nextTool = findTool(tool);
-    if (currentTool === nextTool) {
-      return;
-    }
-    setCurrentTool(nextTool);
-  }, [tool]);
-  useEffect(() => {
-    console.log('initing new current t00l');
-    if (!currentTool) {
-      return;
-    }
-    return currentTool.init();
-  }, [currentTool])
+  }, [features]);
 
   const [hiddenFeaturesQuery, setHiddenFeaturesNames] = useQueryParams({
     hidden: withDefault(ArrayParam, []),
@@ -388,6 +229,12 @@ const Component = () => {
   }
 
   const navigate = (name) => {
+    showZone(true, name);
+
+    if(!map) {
+      return;
+    }
+
     let fitTarget;
     if(_.includes(colors, name)) {
       const zoneFeaturesGeometry = getFeaturesByColor(name)
@@ -399,9 +246,7 @@ const Component = () => {
       const feature = _.find(features, (f)=> f.get('name') === name);
       fitTarget = feature.getGeometry();
     }
-    
-    showZone(true, name);
-    view.fit(fitTarget, { duration: 2000, easing: easeIn, nearest: true, padding: [40, 40, 40, 40]});
+    map.getView().fit(fitTarget, { duration: 2000, easing: easeIn, nearest: true, padding: [40, 40, 40, 40]});
   }
 
   useEffect(()=>{
@@ -417,61 +262,92 @@ const Component = () => {
     };
   }, [features, featuresVisibilities]);
 
-  const [expanded, setExpanded] = useState({});
-  const toggleExpanded = (color) => {
-    setExpanded({...expanded, [color]: !expanded[color]});
-  }
+  useEffect(() => {
+    if(!map) {
+      return;
+    }
+    const view = map.getView();
+    const log = (event) => {
+      console.log(event.coordinate)
+    }
+    const renavigate = _.throttle((e) => {
+      const view = e.target;
+      const zoom = view.getZoom();
+      const [lon, lat] = toLonLat(view.getCenter());
+      setQuery({zoom, lon, lat}, 'replaceIn');
+    }, 200);
+
+    const showInfoDebounced = _.debounce(showInfo, 100);
+    
+    map.on('click', log);
+    view.on('change', renavigate);
+    map.on('pointermove', showInfoDebounced);
+
+    return () => {
+      map.un('click');
+      view.un('change', renavigate);
+      view.un('pointermove', showInfoDebounced);
+    }
+  }, [map]);
+  
+  const [info, setInfo] = useState({style: {}, text: '', coordinate: []});
+  function showInfo(event) {
+    const features = map.getFeaturesAtPixel(event.pixel);
+    const coordinate = toLonLat(event.coordinate);
+    if (features.length == 0) {
+      setInfo({
+        text: '',
+        coordinate,
+      })
+      return;
+    }
+
+    map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
+      const properties = feature.getProperties();
+      const featureStyle = layer.getStyle()(feature)[0];
+      const fillColor = featureStyle.getFill().getColor();
+      const textColor = featureStyle.getStroke().getColor();
+      const backgroundColor = darken(fillColor);
+      setInfo({
+        text: properties.name,
+        coordinate,
+        style: {
+          backgroundColor,
+          color: textColor,
+          borderColor: textColor,
+        }
+      });
+    });
+  };
 
   return (
-    <>
-      <select onChange={(event) => setQuery({tool: event.target.value}, 'replaceIn')} value={tool} >
-        <option value="none">None</option>
-        <option value="collect">Collect</option>
-      </select>
-      <div>{JSON.stringify(info.coordinate)}</div>
-      <Accordion>  
-      {
-        colors.map((color, zoneIndex) => {
-          return (<Card key={zoneIndex}>
-            <Card.Header>
-              <Button variant='outline-link' onClick={() => navigate(color)}>
-                {color} zone
-              </Button>
-              <input  type="checkbox" value={color} checked={isZoneVisible(color)} onChange={e => showZone(e.target.checked, color)}></input>
-              <ContextAwareToggle eventKey={zoneIndex.toString()} className='arrow'></ContextAwareToggle>
-            </Card.Header>
-            <Accordion.Collapse eventKey={zoneIndex.toString()}>
-            <Card.Body>
-              {featuresByColor[color].map((feature, subzoneIndex) => {
-                const name = feature.get('name');
-                return (<Fragment key={subzoneIndex}>
-                    <Button variant='outline-link' onClick={() => navigate(name)}>
-                        {name}
-                    </Button>
-                    <input  type="checkbox" value={color} checked={isZoneVisible(name)} onChange={e => showZone(e.target.checked, name)}></input>
-                  </Fragment>
-                );
-              })}
-            </Card.Body>
-            </Accordion.Collapse>
-          </Card>);
-        })
-      }
-      </Accordion>
-      <pre className='info' style={info.style}>
-        <p>
-          {info.text}
-        </p>
-        <p>
-          {info.coordinate.map(num => Math.round((num + Number.EPSILON) * 10000) / 10000).toString()}
-        </p>
-      </pre>
-    </>
+    <MapContext.Provider value={{ map, source: zonesSource }}>
+      <Container>
+        <Row>
+          <Col lg="3">
+            <MapControls
+              tool={tool}
+              setTool={tool => setQuery({tool}, 'replaceIn')}
+              info={info}
+              colors={colors}
+              featuresByColor={featuresByColor}
+              navigate={navigate}
+              isZoneVisible={isZoneVisible}
+              showZone={showZone} >
+            </MapControls>
+          </Col>
+          <Col lg="9">
+            <div ref={mapRef} className="map">
+            </div>
+          </Col>
+          <Layers>
+            <TileLayer source={new OSM()}></TileLayer>
+            <VectorLayer source={zonesSource} style={zoneStyles}></VectorLayer>
+          </Layers>
+        </Row>
+      </Container>
+    </MapContext.Provider>
   );
 };
 
-export default function App() {
-  return (
-    <Component />
-  );
-}
+export default App;

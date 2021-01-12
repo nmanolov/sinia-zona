@@ -1,50 +1,27 @@
 $theme-colors: (
-    "info": tomato,
-    "danger": teal
+  'info': tomato,
+  'danger': teal,
 );
 
-@import "~bootstrap/scss/bootstrap";
+@import '~bootstrap/scss/bootstrap';
 
-html, body {
+html,
+body {
   height: 100%;
-}
-
-.container {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: block;
-}
-
-.root {
-  display: inline;
-  width: 20%;
-  min-width: 200px;
-  float: left;
 }
 
 .map {
-  display: inline;
   height: 100%;
-  width: 80%;
   min-width: 400px;
-  float: left;
-  margin-top: -8px;
+  min-height: 600px;
 }
 
 .info {
-  z-index: 1;
-  opacity: 0;
-  position: absolute;
-  top: 0;
-  right: 0;
   margin: 20px;
-  min-width: 200px;
-  min-height: 100px;
   padding: 20px;
-  color: white;
   border: solid 1px;
-  transition: opacity 0.1s ease-in, background-color 0.2s ease, border-color 0.2s ease;
+  transition: opacity 0.1s ease-in, background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .ol-dragbox {
@@ -52,27 +29,40 @@ html, body {
   border-color: rgba(100, 150, 0, 1);
 }
 
-.root .accordion .card-header .arrow {
-  &::before {
-    border-style: solid;
-    border-width: 0.25em 0.25em 0 0;
-    content: '';
-    display: inline-block;
-    position: relative;
-    height: 1em;
-    width: 1em;
-    left: 0.15em;
-    top: 0.15em;
-    vertical-align: top;
-    transition: transform 0.2s ease-in;
-  }
+.root .accordion {
+  .card-header {
+    .form-check {
+      display: inline;
+    }
+    .arrow {
+      float: right;
 
-  &.collapsed::before {
-    transform: rotate(-135deg);
-  }
+      &::before {
+        border-style: solid;
+        border-width: 0.25em 0.25em 0 0;
+        border-radius: 3px;
+        content: '';
+        display: inline-block;
+        position: relative;
+        height: 1em;
+        width: 1em;
+        left: 0.15em;
+        top: 0.15em;
+        transition: transform 0.2s ease-in;
+      }
 
-  &.expanded::before {
-    left: 0;
-    transform: rotate(-225deg);
+      &.collapsed::before {
+        transform: rotate(-135deg);
+      }
+
+      &.expanded::before {
+        left: 0;
+        transform: rotate(-225deg);
+      }
+    }
+  }
+  .card-body {
+    max-height: 250px;
+    overflow-y: scroll;
   }
 }
