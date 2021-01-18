@@ -3,8 +3,9 @@ import React, { useContext, useEffect, Fragment, useState } from 'react';
 import MapContext from './MapContext';
 
 import { Accordion, Card, Button, useAccordionToggle, AccordionContext, Form, Alert } from 'react-bootstrap';
-import { DragBox, Select } from 'ol/interaction';
-import { click, platformModifierKeyOnly } from 'ol/events/condition';
+import { DragBox, Select, Modify, Snap } from 'ol/interaction';
+import { click, platformModifierKeyOnly, altShiftKeysOnly } from 'ol/events/condition';
+import { GeoJSON } from 'ol/format';
 import { containsCoordinate } from 'ol/extent';
 
 const colorsTranslations = {
@@ -35,69 +36,42 @@ function ContextAwareToggle({ children, eventKey, callback, className }) {
 
 const tools = [
   {
-    name: 'collect',
+    name: 'none',
+    init: () => () => {},
+  },
+  {
+    name: 'edit',
     init: (map, source) => {
       const select = new Select({
         condition: click,
       });
-      const dragBox = new DragBox({
-        condition: platformModifierKeyOnly,
-      });
       const selectedFeatures = select.getFeatures();
-      const asd = () => {
-        selectedFeatures.clear();
-      };
-
-      const bsd = () => {
-        const rotation = map.getView().getRotation();
-        const oblique = rotation % (Math.PI / 2) !== 0;
-        const candidateFeatures = oblique ? [] : selectedFeatures;
-        const extent = dragBox.getGeometry().getExtent();
-        const res = [];
-        const collectMatchingPoints = (feature) => {
-          candidateFeatures.push(feature);
-          const coordinates = feature.getGeometry().getCoordinates()[0];
-          const includedCoordinates = _.filter(coordinates, (coordinate) => {
-            return containsCoordinate(extent, coordinate);
-          });
-          if(includedCoordinates.length) {
-            _.forEach(includedCoordinates, (coordinate) => {
-              res.push([feature.getProperties().name, JSON.stringify(coordinate)]);
-            });
-          }
-        }
-        source.forEachFeatureIntersectingExtent(extent, collectMatchingPoints);
-        console.table(res);
-
-        if (oblique) {
-          const anchor = [0, 0];
-          const geometry = dragBox.getGeometry().clone();
-          geometry.rotate(-rotation, anchor);
-          const extent$1 = geometry.getExtent();
-          candidateFeatures.forEach(function (feature) {
-            const geometry = feature.getGeometry().clone();
-            geometry.rotate(-rotation, anchor);
-            if (geometry.intersectsExtent(extent$1)) {
-              selectedFeatures.push(feature);
-            }
-          });
-        }
-      }
-
-      dragBox.on('boxstart', asd);
-      dragBox.on('boxend', bsd);
-
-      map.addInteraction(dragBox);
+      const modify = new Modify({ features: selectedFeatures, deleteCondition: altShiftKeysOnly });
+      const snap = new Snap({ source });
       map.addInteraction(select);
+      map.addInteraction(modify);
+      map.addInteraction(snap);
 
       return () => {
-        map.removeInteraction(dragBox);
         map.removeInteraction(select);
-        dragBox.un('boxstart', asd);
-        dragBox.un('boxend', bsd);
-      }
+        map.removeInteraction(modify);
+        map.removeInteraction(snap);
+      };
     }
-  }
+  },
+  {
+    name: 'print',
+    init: (map, source) => {
+      const features = _.chain(source.getFeatures())
+        .sortBy(features, [feature => {
+          return Number(feature.get('name').match(/\d+/)[0]);
+        }])
+        .forEach(f => console.log(f.get('name')))
+        .value();
+      
+      console.log(new GeoJSON({dataProjection: 'EPSG:3857'}).writeFeatures(features));
+    }
+  },
 ];
 
 const MapControls = ({
@@ -118,7 +92,6 @@ const MapControls = ({
     if(!map) {
       return;
     }
-    console.log('useEffect Body')
     const nextTool = findTool(tool);
     if (currentTool === nextTool) {
       return;
@@ -126,7 +99,6 @@ const MapControls = ({
     setCurrentTool(nextTool);
   }, [tool]);
   useEffect(() => {
-    console.log('initing new current t00l');
     if (!currentTool || !map) {
       return;
     }
@@ -144,8 +116,11 @@ const MapControls = ({
         </p>
       </pre>
       <Form.Control as="select" onChange={event => setTool(event.target.value)} value={tool}>
-        <option value="none">None</option>
-        <option value="collect">Collect</option>
+        {
+          tools.map(({name}, index) => {
+            return (<option key={index} value={name}>{name}</option>);
+          })
+        }
       </Form.Control>
       <Accordion>  
       {

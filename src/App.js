@@ -267,24 +267,19 @@ const App = () => {
       return;
     }
     const view = map.getView();
-    const log = (event) => {
-      console.log(event.coordinate)
-    }
     const renavigate = _.throttle((e) => {
       const view = e.target;
       const zoom = view.getZoom();
       const [lon, lat] = toLonLat(view.getCenter());
-      setQuery({zoom, lon, lat}, 'replaceIn');
+      setQuery({zoom, lon, lat}, 'pushIn');
     }, 200);
 
     const showInfoDebounced = _.debounce(showInfo, 100);
     
-    map.on('click', log);
     view.on('change', renavigate);
     map.on('pointermove', showInfoDebounced);
 
     return () => {
-      map.un('click');
       view.un('change', renavigate);
       view.un('pointermove', showInfoDebounced);
     }
@@ -303,19 +298,30 @@ const App = () => {
     }
 
     map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
-      const properties = feature.getProperties();
-      const featureStyle = layer.getStyle()(feature)[0];
-      const fillColor = featureStyle.getFill().getColor();
-      const textColor = featureStyle.getStroke().getColor();
-      const backgroundColor = darken(fillColor);
-      setInfo({
-        text: properties.name,
-        coordinate,
-        style: {
+      const text = feature.getProperties().name;
+      let style;
+      if(!layer) {
+        style = {
+          backgroundColor: 'white',
+          color: 'black',
+          borderColor: 'red',
+        };
+      } else {
+        const featureStyle = layer.getStyle()(feature)[0];
+        const fillColor = featureStyle.getFill().getColor();
+        const textColor = featureStyle.getStroke().getColor();
+        const backgroundColor = darken(fillColor);
+        style = {
           backgroundColor,
           color: textColor,
-          borderColor: textColor,
-        }
+          borderColor: textColor
+        };
+      }
+
+      setInfo({
+        text,
+        coordinate,
+        style,
       });
     });
   };
@@ -327,7 +333,7 @@ const App = () => {
           <Col lg="3">
             <MapControls
               tool={tool}
-              setTool={tool => setQuery({tool}, 'replaceIn')}
+              setTool={tool => setQuery({tool}, 'pushIn')}
               info={info}
               colors={colors}
               featuresByColor={featuresByColor}
