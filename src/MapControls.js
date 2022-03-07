@@ -2,7 +2,8 @@ import React, { useContext, useEffect, Fragment, useState } from 'react';
 
 import MapContext from './MapContext';
 
-import { Accordion, Card, Button, useAccordionToggle, AccordionContext, Form, Alert } from 'react-bootstrap';
+import { Accordion, Card, Button,  AccordionContext, Form, Alert } from 'react-bootstrap';
+import { useAccordionButton } from 'react-bootstrap/AccordionButton'
 import { DragBox, Select, Modify, Snap } from 'ol/interaction';
 import { click, platformModifierKeyOnly, altShiftKeysOnly } from 'ol/events/condition';
 import { GeoJSON } from 'ol/format';
@@ -16,10 +17,10 @@ const colorsTranslations = {
 function ContextAwareToggle({ children, eventKey, callback, className }) {
   const currentEventKey = useContext(AccordionContext);
 
-  const decoratedOnClick = useAccordionToggle(
+  const decoratedOnClick = useAccordionButton(
     eventKey,
     () => callback && callback(eventKey),
-  );
+  )
 
   const isCurrentEventKey = currentEventKey === eventKey;
 
@@ -143,10 +144,16 @@ const MapControls = ({
               {featuresByColor[color].map((feature, subzoneIndex) => {
                 const name = feature.get('name');
                 return (<Fragment key={subzoneIndex}>
-                    <Button variant='outline-link' onClick={() => navigate(name)}>
+                    <Button
+                      variant='outline-link'
+                      onClick={() => navigate(name)}>
                         {name}
                     </Button>
-                    <input  type="checkbox" value={color} checked={isZoneVisible(name)} onChange={e => showZone(e.target.checked, name)}></input>
+                    <input  type="checkbox"
+                      value={color}
+                      checked={isZoneVisible(name)}
+                      onChange={e => showZone(e.target.checked, name)}>
+                    </input>
                   </Fragment>
                 );
               })}

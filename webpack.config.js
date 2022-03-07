@@ -10,10 +10,12 @@ module.exports = {
   },
   devtool: 'inline-source-map',
   devServer: {
-    contentBase: './dist',
+    // contentBase: './dist',
     port: 9000,
     host: '0.0.0.0',
-    writeToDisk: true
+    // writeToDisk: true,
+    liveReload: true,
+    static: false
   },
   plugins: [
     new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),

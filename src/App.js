@@ -20,7 +20,7 @@ import { easeIn } from 'ol/easing';
 import View from 'ol/View';
 import OLMap from 'ol/Map';
 
-import { useQueryParams, NumberParam, StringParam, withDefault, ArrayParam } from 'use-query-params';
+import { useQueryParams, NumberParam, StringParam, withDefault, ArrayParam, QueryParamProvider } from 'use-query-params';
 import Color from 'color';
 import { Col, Row, Container } from 'react-bootstrap';
 
